@@ -345,13 +345,13 @@ def get_all_movie_info():
         entry['_id'] = target
         entry['flv_url'] = flv_url
         entry['play_time'] = time
-        pp.pprint(entry)
-        # try:
-        #     print(entry['title'])
-        #     collect.insert(entry)
-        # except Exception as e:
-        #     print(url,e)
-        #     return
+        # pp.pprint(entry)
+        try:
+            print(entry['title'])
+            collect.insert(entry)
+        except Exception as e:
+            print(url,e)
+            return
 
     regex = re.compile(r'全員')
     base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
@@ -406,7 +406,7 @@ def main():
 
 
 if __name__ == '__main__':
-    init_mongo('fc2_movie','movies')
+    init_mongo('sample','movies')
     # main()
     # download_movie('')
     # move_to_directory_in_order()
