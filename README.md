@@ -1,3 +1,3 @@
-# shell_scripts
+# script for CentOS
 
 for centos
