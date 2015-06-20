@@ -370,7 +370,7 @@ def get_all_movie_info():
     regex = re.compile(r'全員')
     movies = []
     base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
-    page_number = 13080
+    page_number =  1
     while True:
         print(page_number)
         try:
