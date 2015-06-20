@@ -36,7 +36,7 @@ def login_fc2_selenium():
 
     global driver
     driver = webdriver.PhantomJS()
-    # driver.get("https://secure.id.fc2.com/index.php?mode=login&switch_language=jp")
+    #driver.get("https://secure.id.fc2.com/index.php?mode=login&switch_language=jp")
     driver.get("http://fc2.com/ja/login.php?ref=video")
 
     driver.find_element_by_name('email').send_keys(email_address)
@@ -76,9 +76,14 @@ def get_id_and_flv_url(url):
         hash_target = (target + FC2magick).encode('utf-8')
         mini = hashlib.md5(hash_target).hexdigest()
         ginfo_url = 'http://video.fc2.com/ginfo.php?mimi=' + mini + '&v=' + target + '&upid=' + target + '&otag=1'
-        content = urllib.request.urlopen(ginfo_url)
-        filepath = BeautifulSoup(content.read()).p.string
-        flv_url =  filepath.split('&')[0].split('=')[1] + '?' + filepath.split('&')[1]
+        
+        #content = urllib.request.urlopen(ginfo_url)
+        #filepath = BeautifulSoup(content.read()).p.string
+        soup = BeautifulSoup(urllib.request.urlopen(ginfo_url,timeout=3).read())
+        filepath = str(soup).replace(";","").split("&amp")
+        flv_url =  filepath[0].split('=')[1] + '?' + filepath[1]
+        
+         
         return target, flv_url
     except Exception as e:
         print(e)
@@ -328,38 +333,52 @@ def move_to_directory_in_order():
                 os.rename(FOLDER_PATH + tag + '/' + movie,FOLDER_PATH + folder + tag + '/' + movie)
 
 def get_all_movie_info():
-
+    
+    session = requests.session()
+    login_data = {"email":"fukuta0614@yahoo.co.jp","pass":"qwe123qwe"}
+    session.post("http://secure.id.fc2.com/index.php?mode=login&switch_language=jp",login_data)
+     
+    #login_fc2_selenium()
     def get_info(url,time):
 
         target, flv_url = get_id_and_flv_url(url)
         if target == None or flv_url == None:
             return
-        entry = {'url':url}
-        soup = BeautifulSoup(requests.get(url).content)
-        entry['title'] = soup.find('h2',class_="cont_v2_hmenu04 clearfix").text
-        entry['kind'] = soup.find('div',class_='cont_v2_hmenu01 clearfix').p.text
-        entry['tag'] = [li.a.span.text for li in soup.find_all('li',class_='radius_all tag_lock')]
-        entry['rate'] = float(re.sub(r'\W','',soup.find('strong',class_='js-good-rate').text))/100.
-        entry['playing'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[0].strong.text)
-        entry['fav'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[1].strong.text)
-        entry['_id'] = target
-        entry['flv_url'] = flv_url
-        entry['play_time'] = time
-        #pp.pprint(entry)
-        #try:
-        print(entry['title'])
-        collect.insert(entry)
-        #except Exception as e:
-        #    print(url,e)
-        #    return
+        try:
+            entry = {'url':url}
+           # driver.get(url)
+            soup = BeautifulSoup(session.get(url,timeout=5).content)
+            #soup = BeautifulSoup(session.get(url,timeout=5).content)
+            #soup = BeautifulSoup(driver.page_source.encode("utf-8"))
+            entry['title'] = soup.find('h2',class_="cont_v2_hmenu04 clearfix").text
+            entry['kind'] = soup.find('div',class_='cont_v2_hmenu01 clearfix').p.text
+            entry['tag'] = [li.a.span.text for li in soup.find_all('li',class_='radius_all tag_lock')]
+            entry['rate'] = float(re.sub(r'\W','',soup.find('strong',class_='js-good-rate').text))/100.
+            entry['playing'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[0].strong.text)
+            entry['fav'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[1].strong.text)
+            entry['_id'] = target
+            entry['flv_url'] = flv_url
+            entry['play_time'] = time
+
+            print(entry["title"])	
+            collect.insert(entry)
+        except Exception as e:
+            print(url,e)
+            return
 
     regex = re.compile(r'全員')
     base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
     movies = []
-    page_number = 1
+    page_number = 13080
     while True:
         print(page_number)
-        soup = BeautifulSoup(requests.get(base_url.format(page_number)).content)
+        try:
+            soup = BeautifulSoup(session.get(base_url.format(page_number),timeout=5).content)
+        except Exception as e:
+            page_number+=1
+            with open("error.txt","a") as f:
+                f.write( str(e) + str(page_number))
+            continue
         try:
             if soup:
                 for movie in soup.find_all('div',class_="video_list_renew clearfix")[:50]:
@@ -367,6 +386,7 @@ def get_all_movie_info():
                         play_time = movie.find('span',class_='video_time_renew').text
                         url = movie.find('div',class_='video_info_right').h3.a['href']
                         if regex.search(movie.find('ul',class_='video_info_upper_renew clearfix').li.text):
+                            #get_info(url,play_time)
                             movies.append((url,play_time))
                     except Exception as e:
                         print(e)
