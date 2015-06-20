@@ -392,6 +392,7 @@ def get_all_movie_info():
                             try:
                                 refer_movie = collect.find({'_id':target})[0]
                                 refer_movie['thumbnail'] = thumbnail
+                                print(refer_movie['title'])
                                 collect.save(refer_movie)
                             except:
                                 #get_info(url,play_time)
@@ -408,8 +409,8 @@ def get_all_movie_info():
             processes = set()
             while True:
                 if len(processes) < 8 and len(movies) > 0:
-                    url, play_time = movies.pop(0)
-                    p = Process(target=get_info,args=(url,play_time))
+                    url, play_time,thumbnail = movies.pop(0)
+                    p = Process(target=get_info,args=(url,play_time,thumbnail))
                     p.start()
                     processes.add(p)
                 set_new = set()
