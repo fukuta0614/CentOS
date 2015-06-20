@@ -339,7 +339,7 @@ def get_all_movie_info():
     session.post("http://secure.id.fc2.com/index.php?mode=login&switch_language=jp",login_data)
      
     #login_fc2_selenium()
-    def get_info(url,time):
+    def get_info(url,time,thumbnail):
 
         target, flv_url = get_id_and_flv_url(url)
         if target == None or flv_url == None:
@@ -359,6 +359,7 @@ def get_all_movie_info():
             entry['_id'] = target
             entry['flv_url'] = flv_url
             entry['play_time'] = time
+            entry['thumbnail'] = thumbnail
 
             print(entry["title"])	
             collect.insert(entry)
@@ -367,8 +368,8 @@ def get_all_movie_info():
             return
 
     regex = re.compile(r'全員')
-    base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
     movies = []
+    base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
     page_number = 13080
     while True:
         print(page_number)
@@ -385,9 +386,16 @@ def get_all_movie_info():
                     try:
                         play_time = movie.find('span',class_='video_time_renew').text
                         url = movie.find('div',class_='video_info_right').h3.a['href']
+                        target = re.search(r'http:\/\/video\.fc2\.com\/?j?a?\/?a?\/content\/(\w+)/?', url).group(1)
                         if regex.search(movie.find('ul',class_='video_info_upper_renew clearfix').li.text):
-                            #get_info(url,play_time)
-                            movies.append((url,play_time))
+                            thumbnail = movie.img['src']
+                            try:
+                                refer_movie = collect.find({'_id':target})[0]
+                                refer_movie['thumbnail'] = thumbnail
+                                collect.save(refer_movie)
+                            except:
+                                #get_info(url,play_time)
+                                movies.append((url,play_time,thumbnail))
                     except Exception as e:
                         print(e)
         except Exception as e:
@@ -413,7 +421,15 @@ def get_all_movie_info():
                     break
                 time.sleep(1)
 
+def get_gingo_url():
+    FC2magick = '_gGddgPfeaf_gzyr'
 
+    for movie in collect.find():
+        hash_target = (movie['_id'] + FC2magick).encode('utf-8')
+        mini = hashlib.md5(hash_target).hexdigest()
+        ginfo_url = 'http://video.fc2.com/ginfo.php?mimi=' + mini + '&v=' + movie['_id'] + '&upid=' + movie['_id'] + '&otag=1'
+        movie['ginfo_url'] = ginfo_url
+        collect.save(movie)
 
 def main():
 
@@ -431,3 +447,4 @@ if __name__ == '__main__':
     # download_movie('')
     # move_to_directory_in_order()
     get_all_movie_info()
+
