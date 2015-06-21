@@ -353,9 +353,13 @@ def get_all_movie_info():
             entry['title'] = soup.find('h2',class_="cont_v2_hmenu04 clearfix").text
             entry['kind'] = soup.find('div',class_='cont_v2_hmenu01 clearfix').p.text
             entry['tag'] = [li.a.span.text for li in soup.find_all('li',class_='radius_all tag_lock')]
-            entry['rate'] = float(re.sub(r'\W','',soup.find('strong',class_='js-good-rate').text))/100.
             entry['playing'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[0].strong.text)
-            entry['fav'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[1].strong.text)
+            try:
+                entry['rate'] = float(re.sub(r'\W','',soup.find('strong',class_='js-good-rate').text))/100.
+                entry['fav'] = int(soup.find('ul',class_='cont_v2_info_movie01').find_all('li')[1].strong.text)
+            except:
+                entry['rate'] = 0.0
+                entry['fav'] = 0
             entry['_id'] = target
             entry['flv_url'] = flv_url
             entry['play_time'] = time
