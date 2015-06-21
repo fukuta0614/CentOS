@@ -448,7 +448,7 @@ def main():
 
 
 if __name__ == '__main__':
-    init_mongo('fc2_movie','movies')
+    init_mongo('fc2_movie','movies_non_adult')
     # main()
     # download_movie('')
     # move_to_directory_in_order()
