@@ -374,7 +374,7 @@ def get_all_movie_info():
     movies = []
     # base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
     base_url = 'http://video.fc2.com/ja/movie_search.php?isadult=&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
-    page_number =  1
+    page_number =  800
     while True:
         print(page_number)
         try:
