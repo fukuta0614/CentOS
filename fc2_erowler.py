@@ -361,15 +361,19 @@ def get_all_movie_info():
             entry['play_time'] = time
             entry['thumbnail'] = thumbnail
 
-            print(entry["title"])	
-            collect.insert(entry)
+            pp.pprint((entry))
+            # print(entry["title"])
+            # collect.insert(entry)
         except Exception as e:
             print(url,e)
             return
 
-    regex = re.compile(r'全員')
+    regex = re.compile(r'全員★')
+    time_to_sec = re.compile(r'(\d+):(\d+)')
+
     movies = []
-    base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
+    # base_url = 'http://video.fc2.com/ja/a/movie_search.php?isadult=1&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
+    base_url = 'http://video.fc2.com/ja/movie_search.php?isadult=&ordertype=0&usetime=0&timestart=0&timeend=0&keyword=&perpage=50&opentype=1&page={}'
     page_number =  1
     while True:
         print(page_number)
@@ -387,16 +391,17 @@ def get_all_movie_info():
                         play_time = movie.find('span',class_='video_time_renew').text
                         url = movie.find('div',class_='video_info_right').h3.a['href']
                         target = re.search(r'http:\/\/video\.fc2\.com\/?j?a?\/?a?\/content\/(\w+)/?', url).group(1)
-                        if regex.search(movie.find('ul',class_='video_info_upper_renew clearfix').li.text):
+                        play_time_sec = int(time_to_sec.search(play_time).group(1)) * 60 + int(time_to_sec.search(play_time).group(2))
+                        if regex.search(movie.find('ul',class_='video_info_upper_renew clearfix').li.text) and play_time_sec > 1000:
                             thumbnail = movie.img['src']
-                            try:
-                                refer_movie = collect.find({'_id':target})[0]
-                                refer_movie['thumbnail'] = thumbnail
-                                print(refer_movie['title'])
-                                collect.save(refer_movie)
-                            except:
+                            # try:
+                            #     refer_movie = collect.find({'_id':target})[0]
+                            #     refer_movie['thumbnail'] = thumbnail
+                            #     print(refer_movie['title'])
+                            #     collect.save(refer_movie)
+                            # except:
                                 #get_info(url,play_time)
-                                movies.append((url,play_time,thumbnail))
+                            movies.append((url,play_time,thumbnail))
                     except Exception as e:
                         print(e)
         except Exception as e:
