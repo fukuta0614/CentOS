@@ -361,9 +361,9 @@ def get_all_movie_info():
             entry['play_time'] = time
             entry['thumbnail'] = thumbnail
 
-            pp.pprint((entry))
-            # print(entry["title"])
-            # collect.insert(entry)
+            # pp.pprint((entry))
+            print(entry["title"])
+            collect.insert(entry)
         except Exception as e:
             print(url,e)
             return
